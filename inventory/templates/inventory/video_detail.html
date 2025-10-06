@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card card-rounded shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3">
+      🎞️ {{ video.movie_title }}
+      <span class="text-muted">({{ video.release_year }})</span>
+    </h1>
+    <dl class="row">
+      <dt class="col-sm-3">MovieID 🆔</dt>
+      <dd class="col-sm-9">{{ video.movie_id }}</dd>
+
+      <dt class="col-sm-3">Description 📝</dt>
+      <dd class="col-sm-9">{{ video.movie_description|default:"—" }}</dd>
+
+      <dt class="col-sm-3">Actor 1 🎭</dt>
+      <dd class="col-sm-9">{{ video.actor1_name }}</dd>
+
+      <dt class="col-sm-3">Actor 2 🎭</dt>
+      <dd class="col-sm-9">{{ video.actor2_name|default:"—" }}</dd>
+
+      <dt class="col-sm-3">Director 🎬</dt>
+      <dd class="col-sm-9">{{ video.director_name }}</dd>
+
+      <dt class="col-sm-3">Genre 🗂️</dt>
+      <dd class="col-sm-9">{{ video.get_movie_genre_display }}</dd>
+
+      <dt class="col-sm-3">Release Year 📅</dt>
+      <dd class="col-sm-9">{{ video.release_year }}</dd>
+
+      <dt class="col-sm-3">Duration ⏱️</dt>
+      <dd class="col-sm-9">{{ video.duration_minutes|default:"—" }} min</dd>
+    </dl>
+
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-dark btn-pill" href="{% url 'inventory:video-list' %}">⬅️ Back</a>
+      <a class="btn btn-warning btn-pill" href="{% url 'inventory:video-edit' video.pk %}">✏️ Edit</a>
+      <a class="btn btn-danger btn-pill" href="{% url 'inventory:video-delete' video.pk %}">🗑️ Delete</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

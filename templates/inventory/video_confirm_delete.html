@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card card-rounded shadow-sm">
+  <div class="card-body">
+    <h1 class="h5 mb-3">⚠️ Delete Video</h1>
+    <p>Are you sure you want to delete
+      <strong>{{ object.movie_title }}</strong> ({{ object.release_year }})?
+    </p>
+    <form method="post">{% csrf_token %}
+      <div class="d-flex gap-2">
+        <a class="btn btn-outline-dark btn-pill" href="{% url 'inventory:video-detail' object.pk %}">Cancel ⬅️</a>
+        <button class="btn btn-danger btn-pill" type="submit">Delete 🗑️</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

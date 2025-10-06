@@ -1,0 +1,15 @@
+# Python/Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+.venv/
+venv/
+*.sqlite3
+media/
+staticfiles/
+dist/
+build/
+.DS_Store

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card card-rounded shadow-sm">
+  <div class="card-body">
+    <h1 class="h4 mb-3">{% if object %}✏️ Edit Video{% else %}➕ Add Video{% endif %}</h1>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-4">{{ form.movie_id.label_tag }}{{ form.movie_id }}</div>
+        <div class="col-md-8">{{ form.movie_title.label_tag }}{{ form.movie_title }}</div>
+        <div class="col-12">{{ form.movie_description.label_tag }}{{ form.movie_description }}</div>
+        <div class="col-md-6">{{ form.actor1_name.label_tag }}{{ form.actor1_name }}</div>
+        <div class="col-md-6">{{ form.actor2_name.label_tag }}{{ form.actor2_name }}</div>
+        <div class="col-md-6">{{ form.director_name.label_tag }}{{ form.director_name }}</div>
+        <div class="col-md-4">{{ form.movie_genre.label_tag }}{{ form.movie_genre }}</div>
+        <div class="col-md-2">{{ form.release_year.label_tag }}{{ form.release_year }}</div>
+        <div class="col-md-3">{{ form.duration_minutes.label_tag }}{{ form.duration_minutes }}</div>
+      </div>
+      {% if form.errors %}
+      <div class="alert alert-danger mt-3"><strong>Please fix the errors below.</strong> {{ form.errors }}</div>
+      {% endif %}
+      <div class="mt-3 d-flex gap-2">
+        <a class="btn btn-outline-dark btn-pill" href="{% url 'inventory:video-list' %}">Cancel ⬅️</a>
+        <button class="btn btn-primary btn-pill fw-semibold" type="submit">
+          {% if object %}Save Changes ✅{% else %}Create ✅{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
