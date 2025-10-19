@@ -1,0 +1,32 @@
+pipeline {
+  agent any
+  stages {
+    stage('Checkout') {
+      steps {
+        cleanWs()
+        git branch: 'main', url: 'https://github.com/NourShammaa/video_store_clean.git'
+      }
+    }
+    stage('Build Docker Image') {
+      steps {
+        bat 'docker build -t video-store:latest .'
+      }
+    }
+    stage('Stop Old Container') {
+      steps {
+        bat 'docker stop video-store || exit 0'
+        bat 'docker rm video-store || exit 0'
+      }
+    }
+    stage('Run New Container') {
+      steps {
+        bat 'docker run -d --name video-store -p 8010:8000 video-store:latest'
+      }
+    }
+    stage('Migrate DB') {
+      steps {
+        bat 'docker exec video-store python manage.py migrate --noinput'
+      }
+    }
+  }
+}
