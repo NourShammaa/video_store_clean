@@ -16,7 +16,7 @@ spec:
         - name: django-container
           image: mydjangoapp:latest
 
-          imagePullPolicy: Never             # use image from Minikube's Docker
+          imagePullPolicy: IfNotPresent            # use image from Minikube's Docker
           ports:
             - containerPort: 8000            # Django/Gunicorn port in your Dockerfile
         
