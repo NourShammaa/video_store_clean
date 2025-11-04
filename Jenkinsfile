@@ -1,58 +1,39 @@
-// Jenkins pipeline for Django + Minikube (Windows setup)
-
-def IMAGE = 'video_store_clean:latest'  // Keep this synced with deployment.yaml
-
 pipeline {
-  agent any
+    agent any
 
-  triggers { 
-    // Poll GitHub for changes every 2 minutes
-    pollSCM('H/2 * * * *') 
-  }
-
-  stages {
-
-    stage('Checkout') {
-      steps {
-        echo "📦 Checking out source code..."
-        git branch: 'main', url: 'https://github.com/NourShammaa/video_store_clean.git'
-      }
+    triggers {
+        // Poll GitHub every 2 minutes
+        pollSCM('H/2 * * * *')
     }
 
-    stage('Build in Minikube Docker') {
-      steps {
-        bat '''
-        echo === Configuring Docker to use Minikube environment ===
-        call minikube docker-env --shell=cmd > docker_env.bat
-        call docker_env.bat
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/NourShammaa/video_store_clean.git'
+            }
+        }
 
-        echo === Building Docker image inside Minikube ===
-        docker build -t video_store_clean:latest .
-        docker images
-        '''
-      }
+        stage('Build in Minikube Docker') {
+            steps {
+                bat '''
+                REM === Switch Docker to Minikube Docker ===
+                call minikube docker-env --shell=cmd > docker_env.bat
+                call docker_env.bat
+                REM === Build Django image inside Minikube Docker ===
+                docker build -t mydjangoapp:latest .
+                '''
+            }
+        }
+
+        stage('Deploy to Minikube') {
+            steps {
+                bat '''
+                REM === Apply the updated deployment manifest ===
+                kubectl apply -f deployment.yaml
+                REM === Ensure the rollout completes ===
+                kubectl rollout status deployment/django-deployment
+                '''
+            }
+        }
     }
-
-    stage('Deploy to Minikube') {
-      steps {
-        bat '''
-        echo === Setting Minikube and Kube config paths ===
-        set MINIKUBE_HOME=C:\\Users\\jenkinslocal.DESKTOP-9U8H60R\\.minikube
-        set KUBECONFIG=C:\\Users\\jenkinslocal.DESKTOP-9U8H60R\\.kube\\config
-
-        echo === Applying Kubernetes manifests ===
-        kubectl apply -f deployment.yaml --validate=false
-        kubectl apply -f service.yaml --validate=false
-
-        echo === Waiting for rollout to complete ===
-        kubectl rollout status deployment/django-deployment --timeout=90s
-
-        echo === Showing current pods and services ===
-        kubectl get pods -o wide
-        kubectl get svc
-        '''
-      }
-    }
-
-  }
 }
