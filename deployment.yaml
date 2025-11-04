@@ -14,15 +14,9 @@ spec:
     spec:
       containers:
         - name: django-container
-          image: video_store_clean:latest    # <- matches Jenkinsfile build tag
+          image: mydjangoapp:latest
+
           imagePullPolicy: Never             # use image from Minikube's Docker
           ports:
             - containerPort: 8000            # Django/Gunicorn port in your Dockerfile
-          env:
-            - name: DJANGO_SETTINGS_MODULE
-              value: "videostore_project.settings"
-          # Optional but helpful if you already serve /healthz:
-          # readinessProbe:
-          #   httpGet: { path: /, port: 8000 }
-          #   initialDelaySeconds: 10
-          #   periodSeconds: 5
+        
