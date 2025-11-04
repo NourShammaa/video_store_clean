@@ -2,8 +2,12 @@ pipeline {
   agent any
 
   environment {
-    KUBECONFIG    = '%USERPROFILE%\\.kube\\config'
-    MINIKUBE_HOME = '%USERPROFILE%\\.minikube'
+  USERPROFILE       = 'C:\\Users\\nours'
+  HOME              = 'C:\\Users\\nours'
+  MINIKUBE_HOME     = 'C:\\Users\\nours\\.minikube'
+  KUBECONFIG        = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Videostore\\kubeconfig-fixed'
+  # Optional if you use docker-env later:
+  # DOCKER_CERT_PATH = 'C:\\Users\\nours\\.minikube\\certs'
   }
 
   triggers { pollSCM('H/2 * * * *') }
