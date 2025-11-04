@@ -1,63 +1,87 @@
 pipeline {
   agent any
 
-  environment {
-  USERPROFILE       = 'C:\\Users\\nours'
-  HOME              = 'C:\\Users\\nours'
-  MINIKUBE_HOME     = 'C:\\Users\\nours\\.minikube'
-  KUBECONFIG        = 'C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\Videostore\\kubeconfig-fixed'
-  # Optional if you use docker-env later:
-  # DOCKER_CERT_PATH = 'C:\\Users\\nours\\.minikube\\certs'
+  options {
+    disableConcurrentBuilds()
   }
 
-  triggers { pollSCM('H/2 * * * *') }
+  // No SCM trigger here—run manually or add exactly one trigger later.
+  // triggers { pollSCM('H/5 * * * *') }
+
+  environment {
+    // Make Jenkins use your user paths that already work
+    HOME          = 'C:\\Users\\nours'
+    USERPROFILE   = 'C:\\Users\\nours'
+    MINIKUBE_HOME = 'C:\\Users\\nours\\.minikube'
+    // Kubeconfig exported from your working shell (Step A earlier)
+    KUBECONFIG    = 'C:\\ProgramData\\Jenkins\\kube\\kubeconfig-fixed'
+  }
 
   stages {
+
     stage('Start/Ensure Minikube') {
       steps {
-        bat '''
-        minikube status || minikube start --driver=docker
-        minikube kubectl -- get nodes
-        '''
+        bat """
+          @echo on
+          echo Using KUBECONFIG=%KUBECONFIG%
+          minikube -p minikube status || minikube start --driver=docker
+          if errorlevel 1 exit /b 1
+          minikube kubectl -- get nodes
+        """
+      }
+    }
+
+    stage('Point Docker to Minikube') {
+      steps {
+        bat """
+          @echo on
+          for /f "tokens=*" %%i in ('minikube docker-env --shell=cmd') do %%i
+          docker info | find "Name"
+        """
       }
     }
 
     stage('Checkout') {
       steps {
-        git branch: 'main', url: 'https://github.com/NourShammaa/video_store_clean.git'
+        checkout scm
       }
     }
 
     stage('Build in Minikube Docker') {
       steps {
-        bat '''
-        rem IMPORTANT: ensure MINIKUBE_HOME points to YOUR profile first
-        set MINIKUBE_HOME=%USERPROFILE%\\.minikube
-
-        rem Evaluate docker-env in-place (no temp file; preserves quoting)
-        for /f "tokens=* usebackq" %%i in (`minikube docker-env --shell=cmd`) do %%i
-
-        docker version
-        docker build -t mydjangoapp:latest .
-        '''
+        bat """
+          @echo on
+          rem Build image inside Minikube's Docker
+          minikube image build -t mydjangoapp:latest . -- --progress=plain
+        """
       }
     }
 
     stage('Deploy to Minikube') {
       steps {
-        bat '''
-        rem Use minikube-wrapped kubectl to avoid wrong contexts
-        minikube kubectl -- apply -f deployment.yaml
-        minikube kubectl -- apply -f service.yaml
-        minikube kubectl -- rollout status deployment/django-deployment --timeout=240s
-        '''
+        bat """
+          @echo on
+          minikube kubectl -- apply -f deployment.yaml
+          minikube kubectl -- apply -f service.yaml
+          minikube kubectl -- rollout status deploy/mydjangoapp --timeout=180s
+          minikube kubectl -- get pods -o wide
+        """
       }
     }
 
     stage('Run DB migrations') {
       steps {
-        bat 'minikube kubectl -- exec deploy/django-deployment -- python manage.py migrate --noinput'
+        bat """
+          @echo on
+          for /f %%p in ('minikube kubectl -- get pods -l app=mydjangoapp -o name') do minikube kubectl -- exec %%p -- python manage.py migrate --noinput
+        """
       }
+    }
+  }
+
+  post {
+    always {
+      bat "minikube kubectl -- get all"
     }
   }
 }
