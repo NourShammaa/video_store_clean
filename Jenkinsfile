@@ -59,22 +59,24 @@ pipeline {
 
     stage('Deploy to Minikube') {
       steps {
-        bat """
-          @echo on
-          minikube kubectl -- apply -f deployment.yaml
-          minikube kubectl -- apply -f service.yaml
-          minikube kubectl -- rollout status deploy/mydjangoapp --timeout=180s
-          minikube kubectl -- get pods -o wide
-        """
+      bat """
+        minikube kubectl -- apply -f deployment.yaml
+        minikube kubectl -- apply -f service.yaml
+        minikube kubectl -- rollout status deploy/django-deployment --timeout=180s
+        minikube kubectl -- get pods -o wide
+      """
+
       }
     }
 
     stage('Run DB migrations') {
       steps {
-        bat """
+      bat """
           @echo on
-          for /f %%p in ('minikube kubectl -- get pods -l app=mydjangoapp -o name') do minikube kubectl -- exec %%p -- python manage.py migrate --noinput
+          rem Run Django migrations inside the running app container
+          minikube kubectl -- exec deploy/django-deployment -- python manage.py migrate --noinput
         """
+
       }
     }
   }
